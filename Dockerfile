@@ -1,9 +1,8 @@
 FROM alpine:3.5
-MAINTAINER "a.burtsev@sdventures.com"
 
 ENV GOPATH /go
 ENV PATH $GOPATH/bin:/usr/local/go/bin:$PATH
-ENV SRC $GOPATH/src/git.dev/developers/eac
+ENV SRC $GOPATH/src/github.com/0xBADC0FFEE/elasticsearch-filter
 
 ADD ./ $SRC
 
@@ -15,4 +14,4 @@ RUN apk add --no-cache musl-dev go \
     && rm -rf $GOPATH/src/ \
     && rm -rf $GOPATH/pkg/
 
-ENTRYPOINT ["eac"]
+ENTRYPOINT ["elasticsearch-filter"]
