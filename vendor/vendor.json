@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "IKpqic41Gek8HPAlMPk0crZBkCI=",
+			"path": "github.com/c2h5oh/datasize",
+			"revision": "ac35299842b215b2719d674ea369162c13ba4dc1",
+			"revisionTime": "2016-05-14T20:11:24Z"
+		}
+	],
+	"rootPath": "github.com/0xBADC0FFEE/elasticsearch-fitter"
+}
