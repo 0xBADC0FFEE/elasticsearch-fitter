@@ -1,29 +1,24 @@
-# Автоочистка elasticsearch
-Автоочистка ES от старых индексов при отстуствии свободного места на диске
-
-## Параметры командной строки
-_=X - значения по-умолчанию_
+# Elasticsearch Fitter
+Deletes old indices to fit Elasticsearch data in disk space
 
 
 ### `-version`
-Чтобы установить версию во время билда необходимо выполнить `go build -ldflags "-X main.Version=1.0.0"`
 
 
 ### `-skip`
-Не удалять указанный индекс
-Флаг может быть использован несколько раз
+Index won't be removed
 
     -skip=".kibana" -skip="logstash-2006-01-02"
 
 
 ### `-space=15`
-Допустимый объем свободного места на диске в процентах
+% of disk space to be freed
 
 
 ### `-duration=1h`
-Частота проверки оставшегося места на диске (и очистки, если его мало)
+Check frequency
 https://golang.org/pkg/time/#ParseDuration
 
 
 ### `-server="http://127.0.0.1:9200"`
-Адрес ElasticSearch сервера в формате URL
+ElasticSearch URL
