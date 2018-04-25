@@ -58,7 +58,7 @@ func main() {
 		log.Printf("Checking")
 
 		for {
-			ok, err := check(serverFlag, spaceFlag, skipFlag)
+			ok, err := checkFreeSpace(serverFlag, spaceFlag)
 			if err != nil {
 				log.Printf("Error checking, %v", err)
 				time.Sleep(time.Minute)
@@ -66,7 +66,7 @@ func main() {
 			}
 			if !ok {
 
-				if err := delete(serverFlag, spaceFlag, skipFlag); err != nil {
+				if err := deleteOldIndeces(serverFlag, skipFlag); err != nil {
 					log.Printf("Error checking, %v", err)
 					time.Sleep(time.Minute)
 					continue
@@ -85,56 +85,56 @@ func main() {
 
 }
 
-func check(server string, space int, skip SkipFlag) (bool, error) {
+func checkFreeSpace(server string, space int) (bool, error) {
 	log.Print("Checking data storage free space")
 
 	// Space
 	nodesStatsBody, err := request(http.MethodGet, fmt.Sprintf("%s/_nodes/stats", server), nil)
 	if err != nil {
-		return false, fmt.Errorf("Error getting nodes stats, %v", err)
+		return false, fmt.Errorf("error getting nodes stats, %v", err)
 	}
 
 	var stats NodeStatsResponse
 
 	jsonErr := json.Unmarshal(nodesStatsBody, &stats)
 	if jsonErr != nil {
-		return false, fmt.Errorf("Error unmarshalling NodeStatsResponse to json, %v", err)
+		return false, fmt.Errorf("error unmarshalling NodeStatsResponse to json, %v", err)
 	}
 
 	log.Print("Calculating free space for nodes")
 
 	var freePercent int64
 
-	for k := range stats.Nodes {
-		log.Printf("Node: %v [%s]", stats.Nodes[k].Name, stats.Nodes[k].Host)
+	for nodeName := range stats.Nodes {
+		log.Printf("Node: %v [%s]", stats.Nodes[nodeName].Name, stats.Nodes[nodeName].Host)
 
-		fsTotal := stats.Nodes[k].FS.Total
+		fsTotal := stats.Nodes[nodeName].FS.Total
 
-		for _, fsData := range stats.Nodes[k].FS.Data {
-			log.Printf("Path: %s, Device: %s, Free: %.2fGB", fsData.Path, fsData.Device, datasize.ByteSize(fsData.Available).GBytes())
+		for _, fsData := range stats.Nodes[nodeName].FS.Data {
+			log.Printf("Node: %s, Path: %s, Device: %s, Free: %.2fGB", nodeName, fsData.Path, fsData.Device, datasize.ByteSize(fsData.Available).GBytes())
 		}
 
 		freePercent = fsTotal.Available * 100 / fsTotal.Total
-		log.Printf("Free data space: %d%% (%.2fGB)", freePercent, datasize.ByteSize(fsTotal.Available).GBytes())
+		log.Printf("Node %s Free data space: %d%% (%.2fGB)", nodeName, freePercent, datasize.ByteSize(fsTotal.Available).GBytes())
 	}
 
 	return freePercent > int64(space), nil
 }
 
-func delete(server string, space int, skip SkipFlag) error {
+func deleteOldIndeces(server string, skip SkipFlag) error {
 	// Indices
 	log.Print("Deleting old indices")
 
 	aliasesBody, err := request(http.MethodGet, fmt.Sprintf("%s/_aliases", server), nil)
 	if err != nil {
-		return fmt.Errorf("Error getting nodes stats, %v", err)
+		return fmt.Errorf("error getting nodes stats, %v", err)
 	}
 
 	var aliases AliasesResponse
 
 	jsonErr := json.Unmarshal(aliasesBody, &aliases)
 	if jsonErr != nil {
-		return fmt.Errorf("Error unmarshalling StatusResponse to json, %v", err)
+		return fmt.Errorf("error unmarshalling AliasesResponse to json, %v", err)
 	}
 
 	var indices Indices
@@ -146,7 +146,7 @@ func delete(server string, space int, skip SkipFlag) error {
 	}
 
 	if len(indices) == 0 {
-		return fmt.Errorf("No indices to remove")
+		return fmt.Errorf("no indices to remove")
 	}
 
 	sort.Sort(indices)
@@ -157,7 +157,7 @@ func delete(server string, space int, skip SkipFlag) error {
 
 	indexDeleteBody, err := request(http.MethodDelete, fmt.Sprintf("%s/%s", server, index), nil)
 	if err != nil {
-		return fmt.Errorf("Error deleting index %s, %s, %v", index, string(indexDeleteBody), err)
+		return fmt.Errorf("error deleting index %s, %s, %v", index, string(indexDeleteBody), err)
 	}
 
 	log.Printf("Index %s deleted successfully", index)
@@ -241,12 +241,12 @@ func indexTime(s string) (time.Time, error) {
 	matches := dailyIndex.FindStringSubmatch(s)
 
 	if len(matches) < 3 {
-		return time.Time{}, errors.New("Wrong format")
+		return time.Time{}, errors.New("wrong format")
 	}
 
 	date, err := time.Parse("2006.01.02", matches[2])
 	if err != nil {
-		return time.Time{}, fmt.Errorf("Error parsing date %s to %s: %v", date, s, err)
+		return time.Time{}, fmt.Errorf("error parsing date %s to %s: %v", date, s, err)
 	}
 
 	return date, nil
@@ -283,8 +283,4 @@ type NodeStatsFSDataResponse struct {
 	Total     int64  `json:"total_in_bytes"`
 	Free      int64  `json:"free_in_bytes"`
 	Available int64  `json:"available_in_bytes"`
-}
-
-type StatusResponse struct {
-	Indices map[string]interface{} `json:"indices"`
 }
