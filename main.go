@@ -69,7 +69,6 @@ func main() {
 				if err := deleteOldIndeces(serverFlag, skipFlag); err != nil {
 					log.Printf("Error checking, %v", err)
 					time.Sleep(time.Minute)
-					continue
 				}
 
 				continue
@@ -103,22 +102,33 @@ func checkFreeSpace(server string, space int) (bool, error) {
 
 	log.Print("Calculating free space for nodes")
 
-	var freePercent int64
+	var freePercentList []int64
 
-	for nodeName := range stats.Nodes {
-		log.Printf("Node: %v [%s]", stats.Nodes[nodeName].Name, stats.Nodes[nodeName].Host)
+	for nodeId := range stats.Nodes {
+		nodeName := fmt.Sprintf("Node: %v [%s] (%s)", stats.Nodes[nodeId].Name, stats.Nodes[nodeId].Host, nodeId)
 
-		fsTotal := stats.Nodes[nodeName].FS.Total
-
-		for _, fsData := range stats.Nodes[nodeName].FS.Data {
-			log.Printf("Node: %s, Path: %s, Device: %s, Free: %.2fGB", nodeName, fsData.Path, fsData.Device, datasize.ByteSize(fsData.Available).GBytes())
+		for _, fsData := range stats.Nodes[nodeId].FS.Data {
+			log.Printf("%s, Path: %s, Device: %s, Free: %.2fGB", nodeName, fsData.Path, fsData.Device, datasize.ByteSize(fsData.Available).GBytes())
 		}
 
-		freePercent = fsTotal.Available * 100 / fsTotal.Total
-		log.Printf("Node %s Free data space: %d%% (%.2fGB)", nodeName, freePercent, datasize.ByteSize(fsTotal.Available).GBytes())
+		fsTotal := stats.Nodes[nodeId].FS.Total
+		freePercent := fsTotal.Available * 100 / fsTotal.Total
+
+		freePercentList = append(freePercentList, freePercent)
+		log.Printf("%s Free data space: %d%% (%.2fGB)", nodeName, freePercent, datasize.ByteSize(fsTotal.Available).GBytes())
 	}
 
-	return freePercent > int64(space), nil
+	var sum int64 = 0
+
+	for _, v := range freePercentList {
+		sum += v
+	}
+
+	meanFreePercent := int64(sum / int64(len(freePercentList)))
+
+	log.Printf("Mean free space: %d%%", meanFreePercent)
+
+	return meanFreePercent > int64(space), nil
 }
 
 func deleteOldIndeces(server string, skip SkipFlag) error {
