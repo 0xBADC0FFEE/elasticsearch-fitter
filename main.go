@@ -18,7 +18,7 @@ import (
 	"github.com/c2h5oh/datasize"
 )
 
-var Version = "3.2.0"
+var Version = "4.0.0"
 
 var dailyIndex = regexp.MustCompile(`^(.+?)((?:\d{2,4}\.*?){3})$`)
 

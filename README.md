@@ -8,7 +8,7 @@ Deletes old indices to fit Elasticsearch data in disk space
 ### `-skip`
 Index patterns won't be removed
 
-    -skip=".kibana" -skip="logstash-\d\d\d\d-\d\d-\d\d"
+    -skip="\.kibana" -skip="logstash-\d\d\d\d-\d\d-\d\d"
 
 
 ### `-space=15`
@@ -20,5 +20,5 @@ Check frequency
 https://golang.org/pkg/time/#ParseDuration
 
 
-### `-server="http://127.0.0.1:9200"`
+### `-server="http://$(hostname --ip-address):9200"`
 ElasticSearch URL
