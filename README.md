@@ -6,9 +6,9 @@ Deletes old indices to fit Elasticsearch data in disk space
 
 
 ### `-skip`
-Index won't be removed
+Index patterns won't be removed
 
-    -skip=".kibana" -skip="logstash-2006-01-02"
+    -skip=".kibana" -skip="logstash-\d\d\d\d-\d\d-\d\d"
 
 
 ### `-space=15`

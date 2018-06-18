@@ -152,6 +152,8 @@ func deleteOldIndeces(server string, skip SkipFlag) error {
 	for index := range aliases {
 		if !skip.Has(index) {
 			indices = append(indices, index)
+		} else {
+			log.Printf("Skipped %s", index)
 		}
 	}
 
@@ -200,21 +202,27 @@ func request(method, url string, body io.Reader) ([]byte, error) {
 	return respBody, nil
 }
 
-type SkipFlag []string
+type SkipFlag []*regexp.Regexp
 
 func (sf SkipFlag) String() string {
-	return strings.Join(sf, ", ")
+	restrings := make([]string, len(sf))
+
+	for _, re := range sf {
+		restrings = append(restrings, re.String())
+	}
+
+	return strings.Join(restrings, ", ")
 }
 
 func (sf *SkipFlag) Set(v string) error {
-	*sf = append(*sf, v)
+	*sf = append(*sf, regexp.MustCompile(v))
 	return nil
 }
 
 func (sf *SkipFlag) Has(v string) bool {
 
 	for _, skip := range *sf {
-		if v == skip {
+		if skip.MatchString(v) {
 			return true
 		}
 	}
