@@ -39,6 +39,8 @@ func main() {
 	flag.Var(&skipFlag, "skip", "Не удалять указанный индекс")
 	flag.Parse()
 
+	log.Print(skipFlag)
+
 	if versionFlag {
 		println(Version)
 		return
@@ -205,7 +207,7 @@ func request(method, url string, body io.Reader) ([]byte, error) {
 type SkipFlag []*regexp.Regexp
 
 func (sf SkipFlag) String() string {
-	restrings := make([]string, len(sf))
+	restrings := make([]string, 0, len(sf))
 
 	for _, re := range sf {
 		restrings = append(restrings, re.String())
