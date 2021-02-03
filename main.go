@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -18,11 +19,12 @@ import (
 	"github.com/c2h5oh/datasize"
 )
 
-var Version = "4.0.0"
+var Version = "4.0.1"
 
 var dailyIndex = regexp.MustCompile(`^(.+?)((?:\d{2,4}\.*?){3})$`)
 
 func main() {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
 	var (
 		versionFlag  bool
